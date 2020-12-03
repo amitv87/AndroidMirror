@@ -1,0 +1,107 @@
+apply plugin: 'com.android.application'
+
+def enableSeparateBuildPerCPUArchitecture = System.env['POPTS_EXCLUDE'] == null && project.hasProperty('splitApk')
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
+
+    useLibrary 'org.apache.http.legacy'
+
+    defaultConfig {
+        applicationId "com.boggyb.androidmirror"
+        minSdkVersion 23
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../my.keystore")
+            storePassword "qweasdzxc"
+            keyAlias "app"
+            keyPassword "qweasdzxc"
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            zipAlignEnabled true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+        debug {
+            signingConfig signingConfigs.release
+        }
+    }
+
+    def printPath = { ->
+        android.applicationVariants.all { variant ->
+            variant.outputs.each { output ->
+                exec {
+                    commandLine "ls", '-lah', output.outputFile
+                }
+            }
+        }
+    }
+
+    assemble.doLast {
+        printPath()
+    }
+
+    // applicationVariants.all { variant ->
+    //     variant.mergeAssetsProvider.configure {
+    //         doLast {
+    //             delete(fileTree(dir: outputDir, includes: ['**/h264-decoder.js', '**/renderer.js']))
+    //         }
+    //     }
+    // }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    flavorDimensions "cap"
+
+    productFlavors {
+        ws {dimension "cap"}
+        p2p {dimension "cap"}
+    }
+
+    splits {
+        abi {
+            reset()
+            universalApk !enableSeparateBuildPerCPUArchitecture
+            enable enableSeparateBuildPerCPUArchitecture
+            include "arm64-v8a"//, "armeabi-v7a", "x86", "x86_64"
+        }
+    }
+
+//    def versionCodes = ['armeabi': 1, 'armeabi-v7a': 2, 'arm64-v8a': 3, 'mips': 5, 'mips64': 6, 'x86': 8, 'x86_64': 9]
+//
+//    applicationVariants.all { variant ->
+//        variant.outputs.each { output ->
+//            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+//            if (abi != null)  output.versionCodeOverride = versionCodes.get(abi) * 1000000 + defaultConfig.versionCode
+//        }
+//    }
+
+    packagingOptions {
+        exclude "$System.env.POPTS_EXCLUDE"
+    }
+}
+
+dependencies {
+    compileOnly project(path: ':internal')
+    implementation 'com.jcraft:jsch:0.1.55'
+    implementation "org.slf4j:slf4j-api:1.7.25"
+    wsCompileOnly 'org.webrtc:google-webrtc:1.0.30039'
+    p2pImplementation 'org.webrtc:google-webrtc:1.0.30039'
+
+//    implementation "org.slf4j:slf4j-simple:1.7.25"
+//    implementation "org.java-websocket:Java-WebSocket:1.5.1"
+}

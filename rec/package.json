@@ -1,0 +1,12 @@
+{
+  "name": "rec",
+  "version": "1.0.0",
+  "description": "",
+  "main": "rec.js",
+  "license": "ISC",
+  "dependencies": {
+    "webapp": "file:../webapp",
+    "esm": "^3.2.25",
+    "ws": "^7.3.0"
+  }
+}

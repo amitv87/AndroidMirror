@@ -1,0 +1,181 @@
+#mc{
+  margin:0 auto;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+}
+
+.fc {
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  position: fixed;
+  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.popup{
+  background-color: #000000AA;
+}
+
+#butcontcont{
+  left: 0;
+  width: 100vw;
+  display: flex;
+  position: fixed;
+  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+  pointer-events: none;
+  transition: top 0.33s ease 0s;
+}
+
+#clipdata{
+  padding: 5px;
+  font-size: 16px;
+  border-width: 5px;
+  border-radius: 10px;
+  border-color: white;
+  background-color: white;
+  max-width: 80vw;
+  max-height: 80vh;
+}
+
+#expcol{
+  transition: transform 0.33s ease 0s;
+}
+
+#butcont{
+  display: flex;
+  overflow: scroll;
+  max-width: 100vw;
+  max-height: 100vh;
+  pointer-events: all;
+  flex-direction: row;
+}
+
+#butcont::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+#butcont::-webkit-scrollbar-thumb {
+  background: #FF0000;
+}
+
+*:focus {
+  outline: none;
+}
+
+#vidcont{
+  cursor: pointer;
+  overflow: hidden;
+  user-select:none;
+  /*-ms-user-select:none;
+  -moz-user-select:none;
+  -khtml-user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;*/
+  -webkit-tap-highlight-color: transparent;
+}
+
+button{
+  color: white;
+  outline: none;
+  background-color: white;
+  box-shadow: 0 0 4px #999;
+  transition: background 0.8s;
+  background-position: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:hover {
+  background: #c6c9ca radial-gradient(circle, transparent 1%, #c6c9ca 1%) center/15000%;
+}
+
+button:active {
+  background-color: white;
+  background-size: 100%;
+  transition: background 0s;
+}
+
+button:focus{
+  background-color: white;
+}
+
+#butcontcont .imgButton{
+  margin: 3px;
+}
+
+.imgButton{
+  border: none;
+  cursor: pointer;
+  padding: 0px;
+  opacity:0.66;
+  min-width: 30px;
+  max-width: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  border-radius: 100%;
+  filter: drop-shadow(0px 0px 1px white)
+}
+
+.imgButton svg{
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.altButton{
+  border: none;
+  color: black;
+  padding: 10px;
+  font-size: 16px;
+  margin-left: 10px;
+  border-radius: 10px;
+}
+
+/*audio::-webkit-media-controls-timeline,
+video::-webkit-media-controls-timeline {
+    display: none;
+}*/
+
+.input{
+  display: none;
+}
+
+#vidBitrate{
+  padding: 15px;
+  font-size: 16px;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  background-color: transparent;
+}
+
+input[type=range]:focus {
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  width: 10px;
+  height: 25px;
+  margin-top: -10px;
+  background: #fff;
+  -webkit-appearance: none;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  background: grey;
+  height: 5px;
+}
+
+input[type=range]::-moz-range-track {
+  height: 5px;
+  background: grey;
+}

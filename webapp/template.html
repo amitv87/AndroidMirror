@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Android Mirror</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg' xmlns:svg='http://www.w3.org/2000/svg'%3E%3Cg class='layer'%3E%3Ctitle%3ELayer 1%3C/title%3E%3Ccircle cx='20.2' cy='20.2' fill='%2300000033' r='19.4'/%3E%3Ccircle cx='20' cy='20' fill='white' r='19'/%3E%3Cpath d='m10.70833,14.19375c0,-0.64052 0.52406,-1.16458 1.16458,-1.16458l18.63333,0c0.64052,0 1.16458,-0.52406 1.16458,-1.16458s-0.52406,-1.16458 -1.16458,-1.16458l-19.79792,0c-1.28104,0 -2.32917,1.04813 -2.32917,2.32917l0,12.81042l-0.58229,0c-0.9666,0 -1.74688,0.78027 -1.74688,1.74688s0.78027,1.74688 1.74688,1.74688l12.81042,0c0.9666,0 1.74688,-0.78027 1.74688,-1.74688s-0.78027,-1.74688 -1.74688,-1.74688l-9.89896,0l0,-11.64583zm22.12708,1.16458l-6.9875,0c-0.64052,0 -1.16458,0.52406 -1.16458,1.16458l0,11.64583c0,0.64052 0.52406,1.16458 1.16458,1.16458l6.9875,0c0.64052,0 1.16458,-0.52406 1.16458,-1.16458l0,-11.64583c0,-0.64052 -0.52406,-1.16458 -1.16458,-1.16458zm-1.16458,10.48125l-4.65833,0l0,-8.15208l4.65833,0l0,8.15208z' fill='black'/%3E%3C/g%3E%3C/svg%3E">
+</head>
+
+<%= htmlWebpackPlugin.options.inject ? "" : htmlWebpackPlugin.files.css.map((file)=> "<style>" + compilation.assets[file].source() + "</style>").join() %>
+<body style="margin:0 auto;background-color: black">
+  <%= '<div style="display: none">' + compilation.assets['spritemap.svg'].source() + '</div>' %>
+  <div id="mc">
+    <div class="fc">
+      <button class="altButton" onclick="start(this)">Begin</button>
+      <div id="vidcont"></div>
+    </div>
+    <div id="butcontcont" style="top: -36px;">
+      <div id="butcont"></div>
+    </div>
+    <button id="assist" class="imgButton" style="display: none;position: fixed;">
+      <svg id="expcol">
+        <use xlink:href="#plus"></use>
+      </svg>
+    </button>
+    <div id="clipcont" class="popup fc" style="display: none;">
+      <textarea id="clipdata"></textarea>
+      <button class="altButton" onclick="clipOkay()">Okay</button>
+    </div>
+    <div id="settings" class="popup fc" style="display: none;">
+      <div style="text-align: center;color:white;">
+        <input id="vidBitrate" type="range" min="128" max="10240"/>
+        <br/><label></label><label>&nbsp;kbps</label>
+      </div>
+      <button class="altButton" onclick="settingsToggle()">Okay</button>
+    </div>
+  </div>
+  <%= htmlWebpackPlugin.options.useWasm ? '<script src="/js/wasm/h264-decoder.js"></script>' : "" %>
+  <%= htmlWebpackPlugin.options.inject ? "" : '<script>' + compilation.assets['bundle.js'].source() + '</script>' %>
+</body>
+</html>

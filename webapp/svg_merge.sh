@@ -1,0 +1,1 @@
+svg-spreact ./res --optimize true --tidy $@

@@ -1,0 +1,1 @@
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o TCPKeepAlive=yes -o ServerAliveInterval=10 $@ serveo.net
