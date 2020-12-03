@@ -9,7 +9,7 @@ help(){
   echo "Usage:"
   echo "$EXEC_FILE <action> [arguments]"
   echo "  r      run android app"
-  echo "  hs     run prod webapp"
+  echo "  hs     run prod webapp using local-web-server (installed globally)"
   echo "  so     bundle.js source map explorer"
   echo "  rw     run dev webapp"
   echo "  bw     build prod webapp"
