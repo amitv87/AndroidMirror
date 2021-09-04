@@ -14,7 +14,7 @@
       <button class="altButton" onclick="start(this)">Begin</button>
       <div id="vidcont"></div>
     </div>
-    <div id="butcontcont" style="top: -36px;">
+    <div id="butcontcont" style="top: -36px;overflow: hidden;">
       <div id="butcont"></div>
     </div>
     <button id="assist" class="imgButton" style="display: none;position: fixed;">
@@ -34,7 +34,7 @@
       <button class="altButton" onclick="settingsToggle()">Okay</button>
     </div>
   </div>
-  <%= htmlWebpackPlugin.options.useWasm ? '<script src="/js/wasm/h264-decoder.js"></script>' : "" %>
+  <%= htmlWebpackPlugin.options.useWasm ? '<script src="/js/wasm/openh264.js"></script>' : "" %>
   <%= htmlWebpackPlugin.options.inject ? "" : '<script>' + compilation.assets['bundle.js'].source() + '</script>' %>
 </body>
 </html>

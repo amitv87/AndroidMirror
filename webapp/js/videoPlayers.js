@@ -194,9 +194,21 @@ export function WasmH264Player(opts){
   decoder.init();
 
   this.play = buffer => {
-    var frame = decoder.decode(buffer);
+    var _frame = decoder.decode(buffer);
 
-    if(frame.y.width <= 0) return;
+    if(_frame.y.width <= 0) return;
+
+    var frame = {};
+
+    ['y','u','v'].forEach( x => {
+      var plane = _frame[x];
+      frame[x] = {
+        data: plane.data,
+        width: plane.width,
+        height: plane.height,
+        stride: plane.stride,
+      };
+    });
 
     if(!renderer){
       renderer = getRenderer(opts.displayOnCanvas);

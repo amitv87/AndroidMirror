@@ -34,12 +34,10 @@ function expandCollapse(){
   var isCollapsed = butcontcont.style.top != '0px';
   if(isCollapsed){
     butcontcont.style.top = '0px';
-    butcontcont.style.overflowX = 'scroll';
     expcol.style.transform = 'rotate(45deg)';
   }
   else{
     butcontcont.style.top = '-36px';
-    butcontcont.style.overflow = 'hidden';
     expcol.style.transform = 'rotate(0deg)';
   }
 }
@@ -252,8 +250,8 @@ export function initInteractions(canvas, requestPiP, sm, se, rspv){
   canvas.onmouseleave = doMouseLeave;
   // canvas.onmousemove = doMouseMove; // attach this only when required
 
-  if("wheel" in window) canvas.onwheel = doMouseWheel;
-  else if("onmousewheel" in window) canvas.onmousewheel = doMouseWheel;
+  if("onwheel" in canvas) canvas.onwheel = doMouseWheel;
+  else if("onmousewheel" in canvas) canvas.onmousewheel = doMouseWheel;
 
   // attach touch listeners
   [
@@ -322,14 +320,9 @@ export function initInteractions(canvas, requestPiP, sm, se, rspv){
   function doMouseWheel(e){
     if(e.ctrlKey) return;
 
-    var multiplier = 1 / 120;
+    var multiplier = 1 / (20 * (e.deltaMode == 1 ? lineHeight : 6));
     var dx = e.wheelDeltaX * multiplier;
     var dy = e.wheelDeltaY * multiplier;
-
-    if(e.deltaMode == 1){
-      dx *= lineHeight;
-      dy *= lineHeight;
-    }
 
     updateRect();
     var xy = getXY(null, e);
