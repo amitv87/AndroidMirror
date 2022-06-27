@@ -58,19 +58,16 @@ export function AudioPlayerURL(mime){
   }
 }
 
-const AudioContext = window.AudioContext || window.webkitAudioContext;
+const AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
 
 function AudioContextRenderer(audioCtx){
-  var duration = 0, start_ts = 0;
+  var duration = 0;
   this.input = ab => {
     var source = audioCtx.createBufferSource();
     source.buffer = ab;
     source.connect(audioCtx.destination);
-    var now = Date.now();
-    if(duration == 0) start_ts = now + (ab.duration * 1000);
-    var _duration = (now - start_ts) / 1000;
-    // console.log(now, 'ctx renderer diff:', duration - _duration, 'duration:', duration, '_duration', _duration);
-    if(duration < _duration) duration = _duration;
+    // console.log('diff', duration - audioCtx.currentTime, audioCtx.currentTime, duration);
+    if(duration < audioCtx.currentTime) duration = audioCtx.currentTime;
     source.start(duration);
     duration += ab.duration;
   };
