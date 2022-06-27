@@ -1,8 +1,10 @@
 import MP4 from './mp4-generator.js'
 import ExpGolomb from './exp-golomb.js'
 
-function NALU(data){
+export
+function NALU(data, do_not_modify){
   var header = data[4];
+  if(!do_not_modify)
   new DataView(data.buffer).setUint32(0, data.length - 4);
 
   return{
@@ -14,6 +16,7 @@ function NALU(data){
   }
 }
 
+export
 var kNALUTypes = {
   NDR: 1,
   IDR: 5,
@@ -23,6 +26,7 @@ var kNALUTypes = {
   AUD: 9,
 }
 
+export
 var kNALUStrings = {
   1: 'NDR',
   5: 'IDR',
@@ -32,6 +36,7 @@ var kNALUStrings = {
   9: 'AUD',
 };
 
+export
 function splitNalu(arr) {
   var result = [], idx = 0, lastIdx = -1, zeroes = 0, length = arr.byteLength;
 

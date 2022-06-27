@@ -1,4 +1,5 @@
-import { H264Track } from './h264Muxer.js';
+import { H264Track, NALU, kNALUTypes, splitNalu } from './h264Muxer.js';
+import { WebGLUtils } from './webgl_utils.js'
 import { WebGLRenderer } from './webgl_renderer.js'
 
 var iscssminmaxsupported = false;
@@ -247,4 +248,86 @@ export function WasmWorkerH264Player(opts){
     // worker.terminate();
     if(offscreenCanvas) clearCanvas();
   }
+}
+
+export function WebCodecH264Player(opts){
+  var ctx_gl, ctx_2d, canvas = getCanvas(opts.displayOnCanvas);
+
+  var render_2d = frame => {
+    if(!ctx_2d){
+      console.log('init ctx_2d');
+      canvas.width = frame.codedWidth;
+      canvas.height = frame.codedHeight;
+      ctx_2d = canvas.getContext('2d');
+    }
+    ctx_2d.drawImage(frame, 0, 0);
+    frame.close();
+  };
+
+  var render_gl = async frame => {
+    if(!ctx_gl) {
+      console.log('init ctx_gl');
+      canvas.width = frame.codedWidth;
+      canvas.height = frame.codedHeight;
+      ctx_gl = canvas.getContext("webgl");
+      ctx_gl.viewport(0, 0, canvas.width, canvas.height);
+      ctx_gl.pixelStorei(ctx_gl.UNPACK_FLIP_Y_WEBGL, true);
+      ctx_gl.pixelStorei(ctx_gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      ctx_gl.bindTexture(ctx_gl.TEXTURE_2D, ctx_gl.createTexture());
+      ctx_gl.texParameteri(ctx_gl.TEXTURE_2D, ctx_gl.TEXTURE_MIN_FILTER, ctx_gl.NEAREST);
+      ctx_gl.texParameteri(ctx_gl.TEXTURE_2D, ctx_gl.TEXTURE_MAG_FILTER, ctx_gl.NEAREST);
+      ctx_gl.texParameteri(ctx_gl.TEXTURE_2D, ctx_gl.TEXTURE_WRAP_S, ctx_gl.CLAMP_TO_EDGE);
+      ctx_gl.texParameteri(ctx_gl.TEXTURE_2D, ctx_gl.TEXTURE_WRAP_T, ctx_gl.CLAMP_TO_EDGE);
+      ctx_gl.uniform1i(ctx_gl.getUniformLocation(WebGLUtils.setupTexturedQuad(ctx_gl), "tex"), 0);
+    }
+    ctx_gl.texImage2D(ctx_gl.TEXTURE_2D, 0, ctx_gl.RGB, ctx_gl.RGB, ctx_gl.UNSIGNED_BYTE, frame);
+    WebGLUtils.drawQuad(ctx_gl, [0, 0, 0, 255]);
+    ctx_gl.finish();
+    frame.close();
+  }
+
+  var decoder = new VideoDecoder({
+    output: opts.use_gl ? render_gl : render_2d,
+    error : e => console.log(e, e.code),
+  });
+
+  var type = 'key';
+  var _play = data => decoder.decode(new EncodedVideoChunk({type: type, data: data, timestamp: 0}));
+
+  this.play = data => {
+    data = new Uint8Array(data);
+    var chunks = splitNalu(data);
+
+    chunks.forEach(chunk => {
+      var nalu = NALU(chunk, true);
+      if(nalu.unit_type == kNALUTypes.SPS){
+        this.sps = nalu.data;
+        var codec = 'avc1.';
+        for(var i = 5; i < 8; i++){
+          var hex = nalu.data[i].toString(16);
+          if(hex.length < 2) codec += '0';
+          codec += hex;
+        }
+
+        var config = {
+          codec: codec,
+          optimizeForLatency: true,
+          hardwareAcceleration: 'prefer-hardware',
+        };
+
+        console.log('config', config);
+        decoder.configure(config);
+      }
+      else if(nalu.unit_type == kNALUTypes.PPS){
+        this.pps = nalu.data;
+      }
+      else if(nalu.unit_type == kNALUTypes.IDR && this.sps.length && this.pps.length){
+        this.play = _play;
+        var init_frame = new Uint8Array([...this.sps, ...this.pps, ...nalu.data]);
+        this.play(init_frame);
+        type = 'delta';
+      }
+    });
+  }
+  this.release = e => {};
 }

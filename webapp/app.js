@@ -1,8 +1,8 @@
 import './css/main.css';
 import {initInteractions} from './js/interaction.js'
 import {P2PTransport, WSTransport} from './js/transport.js'
-import {InitVideo, requestPiP, MseH264Player, WasmH264Player, WasmWorkerH264Player} from './js/videoPlayers.js'
-import {AudioPlayerMSE, AudioPlayerURL, AudioPlayerContext} from './js/audioPlayers.js'
+import {InitVideo, requestPiP, MseH264Player, WasmH264Player, WasmWorkerH264Player, WebCodecH264Player} from './js/videoPlayers.js'
+import {AudioPlayerMSE, AudioPlayerURL, AudioPlayerContext, WebCodecAudioPlayer} from './js/audioPlayers.js'
 
 const CHANNEL_TYPE = {
   VIDEO: '/video',
@@ -37,9 +37,11 @@ const receivers = {
           if(videoPlayer) videoPlayer.release();
 
           var Player = useWasm ? WasmH264Player : (hashParams.wasm ? WasmWorkerH264Player : MseH264Player);
+          if(Player == MseH264Player && window.VideoDecoder) Player = WebCodecH264Player;
 
           videoPlayer = new Player({
             av: hashParams.av,
+            use_gl: hashParams.gl,
             offscreen: hashParams.offscreen,
             displayOnCanvas: !hashParams.video,
             requestKeyFrame: () => sendMain({a: 'req_key_frame'}),
@@ -130,14 +132,13 @@ window.start = function(button){
   if(button) button.remove();
   startTransport();
 
-  if(!audioPlayer){
-    // audioPlayer = new AudioPlayerURL('audio/aac');
-    // audioPlayer = new AudioPlayerMSE('audio/aac');
-    audioPlayer = new AudioPlayerContext('audio/aac');
-  }
+  var ap_ctr = AudioPlayerURL;
+  ap_ctr = AudioPlayerMSE;
+  ap_ctr = window.AudioDecoder ? WebCodecAudioPlayer : AudioPlayerContext;
+
+  if(!audioPlayer) audioPlayer = new ap_ctr('audio/aac');
 
   console.log('using', audioPlayer);
 
   onDeviceEvent = initInteractions(videoCont, requestPiP, sendMain, sendInput, InitVideo(videoCont));
 };
-
