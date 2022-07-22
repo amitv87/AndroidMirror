@@ -1,19 +1,24 @@
 package com.boggyb.androidmirror;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.StrictMode;
+import android.provider.Settings;
+import android.view.ContextThemeWrapper;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -44,20 +49,29 @@ public class MainActivity extends Activity implements Callbacks.ServiceClient{
   private static final String TAG = MainActivity.class.getCanonicalName();
 
   static final String WHO = "main";
-  private static final int REQUEST_CODE_CAPTURE_PERM = 1234;
+  private static final int REQUEST_CODE_CAPTURE_PERM = 1;
+  private static final int REQUEST_CODE_WRITE_SETT_PERM = 2;
+  private static final int REQUEST_CODE_DRAW_OVERLAY_PERM = 3;
+  private static final int REQUEST_CODE_ACCESSIBILITY_PERM = 4;
 
   private static Bundle dataBundle = null;
 
   private TextView txtConns = null;
   private AppServiceClient appServiceClient = null;
   private CompoundButton toggleButton, toggleSwitch;
-  private LinearLayout hostList, optList, optOverlay;
+  private LinearLayout hostList, optOverlay;
   private boolean prevChecked = false;
+
+  private
+  LinearLayout
+  // com.google.android.flexbox.FlexboxLayout
+  optList;
 
   private static final String kDevPrefs = "devPref";
   private static final String kSecToken = "secToken";
 
   private static final String kWebControlTitle = "Web";
+  private static final String kADBControlTitle = "ADB";
   private static final String kAudioControlTitle = "Audio";
   private static final String kInputControlTitle = "Input";
   private static final String kSecureControlTitle = "Secure";
@@ -77,17 +91,69 @@ public class MainActivity extends Activity implements Callbacks.ServiceClient{
     }
   };
 
+  @Override
+  public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults){
+    boolean should_start = false;
+    for(int  i = 0; i < permissions.length; i ++){
+      String perm = permissions[i];
+      int result = grantResults[i];
+      Log.i(TAG, "onRequestPermissionsResult " + perm + " " + result);
+      switch(perm){
+        case Manifest.permission.RECORD_AUDIO:
+          should_start = result == PackageManager.PERMISSION_GRANTED;
+          if(!should_start && !shouldShowRequestPermissionRationale(perm)) Misc.showToast("RECORD_AUDIO permission denied", this);
+          break;
+      }
+    }
+
+    setToggleControl(should_start);
+  }
+
+  private void startActivityForResult(String action, int code, boolean uri){
+    startActivityForResult(new Intent(action){{
+      if(uri) setData(Uri.parse("package:" + getPackageName()));
+    }}, code);
+    setToggleControl(false);
+  }
+
   private final CompoundButton.OnCheckedChangeListener toggleListener = (buttonView, isChecked) -> {
-    if(prevChecked == isChecked) return;;
+    if(prevChecked == isChecked) return;
     Bundle bundle = new Bundle();
     if(isChecked){
+
+      if(conf.isInputEnabled){
+        if(!conf.useADB){
+          if(!Settings.System.canWrite(this)){
+            startActivityForResult(Settings.ACTION_MANAGE_WRITE_SETTINGS, REQUEST_CODE_WRITE_SETT_PERM, true); return;
+          }
+          if(!isAccessibilityServiceEnabled()){
+            startActivityForResult(Settings.ACTION_ACCESSIBILITY_SETTINGS, REQUEST_CODE_ACCESSIBILITY_PERM, false); return;
+          }
+        }
+        if(!Settings.canDrawOverlays(this)){
+          startActivityForResult(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, REQUEST_CODE_DRAW_OVERLAY_PERM, true); return;
+        }
+      }
+
+      ArrayList<String> permissions = new ArrayList<String>();
+
+      if(conf.isAudioEnabled && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
+        permissions.add(Manifest.permission.RECORD_AUDIO);
+      }
+
+      if(permissions.size() > 0){
+        requestPermissions(permissions.toArray(new String[permissions.size()]), 3);
+        setToggleControl(false); return;
+      }
+
       if(dataBundle == null){
         MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         assert mediaProjectionManager != null;
         Intent permissionIntent = mediaProjectionManager.createScreenCaptureIntent();
         startActivityForResult(permissionIntent, REQUEST_CODE_CAPTURE_PERM);
-        return;
+        setToggleControl(false); return;
       }
+
       dataBundle.putParcelable(MP_CONF, conf);
       dataBundle.putString(MP_SEC_TOKEN, conf.isSecure ? getSecToken() : null);
       bundle.putString(ACTION_KEY, ACTION_START_CAPTURE);
@@ -138,8 +204,11 @@ public class MainActivity extends Activity implements Callbacks.ServiceClient{
     optList = findViewById(R.id.optList);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
       addOption(kAudioControlTitle, conf.isAudioEnabled, (buttonView, isChecked) -> conf.isAudioEnabled = isChecked);
+    addOption(kADBControlTitle, conf.useADB, (buttonView, isChecked) -> conf.useADB = isChecked);
     addOption(kInputControlTitle, conf.isInputEnabled, (buttonView, isChecked) -> conf.isInputEnabled = isChecked);
+    /*
     addOption(kWebControlTitle, conf.isWebAccessEnabled, (buttonView, isChecked) -> conf.isWebAccessEnabled = isChecked);
+    */
     addOption(kSecureControlTitle, conf.isSecure, (buttonView, isChecked) -> conf.isSecure = isChecked).setOnLongClickListener(v -> {
       if(conf.isSecure) {
         getPrefs().edit().remove(kSecToken).apply();
@@ -167,6 +236,12 @@ public class MainActivity extends Activity implements Callbacks.ServiceClient{
     registerReceiver(mReceiver, filter);
   }
 
+  private boolean isAccessibilityServiceEnabled() {
+    Context context = getApplicationContext();
+    String enabledList = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+    return enabledList != null && enabledList.contains(new ComponentName(context, AccessibilityService.class).flattenToString());
+  }
+
   SharedPreferences getPrefs(){
     return getSharedPreferences(kDevPrefs, MODE_PRIVATE);
   }
@@ -182,7 +257,7 @@ public class MainActivity extends Activity implements Callbacks.ServiceClient{
 
   private ToggleButton addOption(String title, boolean checked, CompoundButton.OnCheckedChangeListener listener){
     if(ctrlMap.containsKey(title)) return null;
-    ToggleButton tb = new ToggleButton(this);
+    ToggleButton tb = new ToggleButton(new ContextThemeWrapper(this, R.style.tb));
     tb.setTextOn(title);
     tb.setTextOff(title);
     tb.setChecked(checked);
@@ -206,24 +281,13 @@ public class MainActivity extends Activity implements Callbacks.ServiceClient{
   }
 
   public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-    if(REQUEST_CODE_CAPTURE_PERM == requestCode) {
-      if(resultCode != Activity.RESULT_OK){
-        setToggleControl(false);
-        return;
-      }
-      prevChecked = true;
-      Bundle bundle = new Bundle();
-      bundle.putString(ACTION_KEY, ACTION_START_CAPTURE);
-
+    Log.i(TAG, "onActivityResult requestCode: " + requestCode + ", resultCode: " + resultCode + " " + intent);
+    if(REQUEST_CODE_CAPTURE_PERM == requestCode && resultCode == Activity.RESULT_OK){
       dataBundle = new Bundle();
-      dataBundle.putParcelable(MP_CONF, conf);
       dataBundle.putParcelable(MP_INTENT, intent);
       dataBundle.putInt(MP_RESULT_CODE, resultCode);
-      dataBundle.putString(MP_SEC_TOKEN, conf.isSecure ? getSecToken() : null);
-      bundle.putParcelable(DATA_KEY, dataBundle);
-      if (!appServiceClient.send(bundle)) Log.e(TAG, "send onActivityResult error");
-//      else finish();
     }
+    setToggleControl(resultCode == Activity.RESULT_OK);
   }
 
   @Override
@@ -266,6 +330,7 @@ public class MainActivity extends Activity implements Callbacks.ServiceClient{
       hostList.post(() -> {
         if(conf != null){
           this.conf = conf;
+          setOption(kADBControlTitle, conf.useADB);
           setOption(kAudioControlTitle, conf.isAudioEnabled);
           setOption(kInputControlTitle, conf.isInputEnabled);
           setOption(kWebControlTitle, conf.isWebAccessEnabled);

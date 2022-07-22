@@ -99,8 +99,15 @@ dependencies {
     compileOnly project(path: ':internal')
     implementation 'com.jcraft:jsch:0.1.55'
     implementation "org.slf4j:slf4j-api:1.7.25"
-    wsCompileOnly 'org.webrtc:google-webrtc:1.0.30039'
-    p2pImplementation 'org.webrtc:google-webrtc:1.0.30039'
+
+    /*
+    implementation "androidx.core:core:1.3.2"
+    implementation "androidx.recyclerview:recyclerview:1.2.0"
+    implementation "com.google.android.flexbox:flexbox:3.0.0"
+    */
+
+    wsCompileOnly 'com.github.webrtc-sdk:android:97.4692.04'
+    p2pImplementation 'com.github.webrtc-sdk:android:97.4692.04'
 
 //    implementation "org.slf4j:slf4j-simple:1.7.25"
 //    implementation "org.java-websocket:Java-WebSocket:1.5.1"

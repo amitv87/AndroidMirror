@@ -66,7 +66,6 @@ public class P2PTransport extends DataTransport {
     continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY;
     keyType = PeerConnection.KeyType.ECDSA;
     sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
-    enableDtlsSrtp = true;
 //    enableRtpDataChannel = true;
   }};
 

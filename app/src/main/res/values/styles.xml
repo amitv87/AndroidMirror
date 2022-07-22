@@ -2,8 +2,13 @@
 <resources>
   <color name="colorBlack">#000</color>
   <color name="colorWhite">#fff</color>
+  <color name="colorTint">#7986CB</color>
   <color name="colorTransparent">#0000</color>
   <style name="AppTheme" parent="android:Theme.DeviceDefault.NoActionBar">
     <item name="android:windowBackground">@color/colorBlack</item>
+  </style>
+
+  <style name="tb" parent="android:Widget.DeviceDefault.Button.Toggle">
+    <item name="android:colorAccent">@color/colorTint</item>
   </style>
 </resources>

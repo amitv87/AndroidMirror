@@ -1,5 +1,7 @@
+#!/bin/bash
 set -e
 # set -x
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 GRADLE_ARG=""
 GRADLE_CMD=""
@@ -53,7 +55,6 @@ ADB_DEVICE_AVAILABLE="false"
 adb get-state 1>/dev/null 2>&1 && ADB_DEVICE_AVAILABLE="true"
 echo "ADB_DEVICE_AVAILABLE $ADB_DEVICE_AVAILABLE"
 
-
 if [[ $ADB_DEVICE_AVAILABLE == "true" ]] ; then
   GRADLE_CMD="install"
 else
@@ -64,7 +65,11 @@ fi
 PKG=$(cat app/build.gradle | grep applicationId | awk '{print $2}' | sed -e 's/^"//' -e 's/"$//')
 
 BUILD_PATH='app/build'
-[[ ! -z "${getDevBuildPath}" ]] && eval "$getDevBuildPath" && BUILD_PATH=$(getDevBuildPath)/app;
+[[ ! -z "${getDevBuildPath}" ]] && eval "$getDevBuildPath" && BUILD_PATH=$(getDevBuildPath);
+
+if [[ $BUILD_PATH == /* ]] ; then
+  BUILD_PATH="$(dirname $BUILD_PATH)/gradle_$(basename $BUILD_PATH)"
+fi
 
 FLAVOR=$FLAVOR_CAP
 BUILD_ARGS=$GRADLE_CMD$FLAVOR$BUILD_TYPE
@@ -73,7 +78,7 @@ CMD="./gradlew $GRADLE_ARG $BUILD_ARGS $SPLIT_APK"
 echo "build cmd --> $CMD"
 $CMD
 
-cd $BUILD_PATH/outputs/apk
+cd $BUILD_PATH
 echo "apks available at $(pwd)"
 find . -name *.apk | xargs ls -lah
 cd - > /dev/null

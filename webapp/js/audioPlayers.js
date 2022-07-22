@@ -66,8 +66,7 @@ function AudioContextRenderer(audioCtx){
     var source = audioCtx.createBufferSource();
     source.buffer = ab;
     source.connect(audioCtx.destination);
-    // console.log('diff', duration - audioCtx.currentTime, audioCtx.currentTime, duration);
-    if(duration < audioCtx.currentTime) duration = audioCtx.currentTime;
+    if(duration < audioCtx.currentTime || duration > audioCtx.currentTime + 0.1) duration = audioCtx.currentTime;
     source.start(duration);
     duration += ab.duration;
   };

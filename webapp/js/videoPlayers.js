@@ -317,6 +317,8 @@ export function WebCodecH264Player(opts){
 
         console.log('config', config);
         decoder.configure(config);
+
+        opts.requestKeyFrame();
       }
       else if(nalu.unit_type == kNALUTypes.PPS){
         this.pps = nalu.data;

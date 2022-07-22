@@ -4,7 +4,7 @@ import {P2PTransport, WSTransport} from './js/transport.js'
 import {InitVideo, requestPiP, MseH264Player, WasmH264Player, WasmWorkerH264Player, WebCodecH264Player} from './js/videoPlayers.js'
 import {AudioPlayerMSE, AudioPlayerURL, AudioPlayerContext, WebCodecAudioPlayer} from './js/audioPlayers.js'
 
-const CHANNEL_TYPE = {
+window.CHANNEL_TYPE = {
   VIDEO: '/video',
   AUDIO: '/audio',
   INPUT: '/input',
@@ -116,9 +116,10 @@ function startTransport(){
     hashParams[temp[0]] = temp[1];
   });
 
-  // var Transport = (hashParams.p2p ? P2PTransport : WSTransport);
+  var Transport = (hashParams.p2p ? P2PTransport : WSTransport);
   var baseWSPath = window.location.protocol.replace('http', 'ws') + '//' + (hashParams.wsHost ? hashParams.wsHost : window.location.host);
-  transport = new WSTransport((transport, channel, label)=>{
+  console.log('baseWSPath', baseWSPath);
+  transport = new Transport((transport, channel, label)=>{
     var receiver = receivers[label];
     if(receiver.channel) receiver.channel.close();
     receiver.channel = channel;

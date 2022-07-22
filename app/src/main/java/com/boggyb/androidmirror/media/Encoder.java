@@ -87,6 +87,7 @@ public class Encoder extends MediaCodec.Callback {
 
   @Override
   public void onOutputBufferAvailable(MediaCodec codec, int index, MediaCodec.BufferInfo info) {
+    try{
 //    if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0)
 //      Log.d(TAG, "config frame generated. offset: " + info.offset + ". size: " + info.size + ", index: " + index);
 //    else if((info.flags & MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0)
@@ -105,6 +106,7 @@ public class Encoder extends MediaCodec.Callback {
       }
       codec.releaseOutputBuffer(index, false);
     }
+    } catch(Exception e){Log.e(TAG, "onOutputBufferAvailable", e);}
   }
 
   @Override

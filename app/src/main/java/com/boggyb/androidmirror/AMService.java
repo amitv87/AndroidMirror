@@ -7,8 +7,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ClipboardManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
@@ -17,8 +19,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
@@ -89,6 +93,8 @@ public class AMService extends AppService implements RotationManager.Callback, D
   private int audioBitrateKbps = 128;
   private int videoBitrateKbps = 4 * 1024;
 
+  private Display display = null;
+
   private final ADBShellSession adb = new ADBShellSession(this, kLoopbackAddr, kAdbPort, new ADBShellSession.Callback() {
     @Override
     public void onAdbOpen() {
@@ -128,17 +134,28 @@ public class AMService extends AppService implements RotationManager.Callback, D
       ht.start();
       hth = new Handler(ht.getLooper());
     }
+    /*
     RotationManager.Init(this);
     RotationManager.addRotationWatcher(this, hth);
+    */
     getIMCmd();
 
+    display = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
     clipboard = (ClipboardManager) this.getSystemService(Context.CLIPBOARD_SERVICE);
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig){
+    super.onConfigurationChanged(newConfig);
+    onRotation(getRotation());
   }
 
   @Override
   public void onDestroy(){
     Log.d(TAG, "onDestroy");
+    /*
     RotationManager.DeInit();
+    */
     stopCapture();
     adb.close();
     super.onDestroy();
@@ -260,6 +277,13 @@ public class AMService extends AppService implements RotationManager.Callback, D
     stopForeground(true);
   }
 
+  private int getRotation(){
+    return
+      display.getRotation()
+      // RotationManager.getRotation()
+    ;
+  }
+
   private void startCapture(){
     stopCapture();
     if (mBundle == null) return;
@@ -273,6 +297,8 @@ public class AMService extends AppService implements RotationManager.Callback, D
     Log.d(TAG, "startCaptrue rc: " + rc + ", intent: " + data + ", conf: " + conf);
 
     if (data == null || rc == Activity.RESULT_CANCELED) return;
+
+    display = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
 
     startForeground();
 
@@ -288,7 +314,7 @@ public class AMService extends AppService implements RotationManager.Callback, D
 
     mMediaProjection.registerCallback(mediaProjectionCB, hth);
 
-    prevRotation = RotationManager.getRotation();
+    prevRotation = getRotation();
 
     if(conf.isAudioEnabled){
       try {
@@ -306,7 +332,10 @@ public class AMService extends AppService implements RotationManager.Callback, D
       Log.e(TAG, "ScreenCapture error", e);
     }
 
-    if(conf.isInputEnabled) adb.connect(getIMCmd());
+    if(conf.isInputEnabled){
+      if(conf.useADB) adb.connect(getIMCmd());
+      else isIMReady = true;
+    }
 
     startTransports();
   }
@@ -364,7 +393,7 @@ public class AMService extends AppService implements RotationManager.Callback, D
         put("height", metrics.heightPixels / ScreenCapture.kScaleFactor);
         put("d_width", metrics.widthPixels);
         put("d_height", metrics.heightPixels);
-        put(kActionRotation, RotationManager.getRotation());
+        put(kActionRotation, getRotation());
         put(kActionImStatus, isIMReady);
         put(kActionVideoBitrate, videoBitrateKbps);
         put("caps", new JSONObject(){{
@@ -378,6 +407,12 @@ public class AMService extends AppService implements RotationManager.Callback, D
     } catch (Exception e){
       Log.e(TAG, "sendConf", e);
     }
+  }
+
+  public void rotate(int rotation){
+    ContentResolver cr = getContentResolver();
+    Settings.System.putInt(cr, "accelerometer_rotation", 0);
+    Settings.System.putInt(cr, "user_rotation", rotation);
   }
 
   @Override
@@ -604,7 +639,9 @@ public class AMService extends AppService implements RotationManager.Callback, D
     @Override
     public void onMessage(DataTransport.Channel channel, String message) {
 //      Log.d(TAG, name + " onMessage: " + message + ", isIMReady: " + isIMReady);
-      if(isIMReady) adb.write(message + "\n");
+      if(!isIMReady) return;
+      if(conf.useADB) adb.write(message + "\n");
+      else AccessibilityService.Process(AMService.this, message);
     }
   };
 

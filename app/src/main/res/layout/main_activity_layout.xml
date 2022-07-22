@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
   android:gravity="center"
   android:orientation="vertical"
   android:layout_width="match_parent"
@@ -54,12 +56,12 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginVertical="10dp">
-        <LinearLayout
+        <!-- <com.google.android.flexbox.FlexboxLayout app:flexWrap="wrap" app:alignItems="stretch" app:alignContent="stretch" -->
+        <LinearLayout android:orientation="horizontal"
           android:id="@+id/optList"
           android:gravity="center"
           android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:orientation="horizontal"/>
+          android:layout_height="wrap_content"/>
         <LinearLayout
           android:weightSum="1"
           android:id="@+id/optOverlay"

@@ -63,8 +63,10 @@ public class AudioCapture extends MediaCapture{
         .setAudioPlaybackCaptureConfig(new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
           .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
           .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+          /*
           .addMatchingUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
           .addMatchingUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING)
+          */
           .addMatchingUsage(AudioAttributes.USAGE_ALARM)
           .addMatchingUsage(AudioAttributes.USAGE_NOTIFICATION)
           .addMatchingUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
@@ -93,7 +95,7 @@ public class AudioCapture extends MediaCapture{
 
   @Override
   public boolean startCapture(final Callback callback, Handler handler){
-    if(this.state != State.Initial) return false;
+    if(mAudioRecord.getState() != AudioRecord.STATE_INITIALIZED || this.state != State.Initial) return false;
     cbHandler = handler;
     hth.post(new Runnable() {
       @Override
@@ -108,7 +110,7 @@ public class AudioCapture extends MediaCapture{
 
   @Override
   public boolean stopCapture(){
-    if(this.state != State.Running) return false;
+    if(mAudioRecord.getState() != AudioRecord.STATE_INITIALIZED || this.state != State.Running) return false;
     hth.post(new Runnable() {
       @Override
       public void run() {

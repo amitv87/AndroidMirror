@@ -5,6 +5,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Conf implements Parcelable {
+  public boolean useADB = false;
   public boolean isSecure = false;
   public boolean isAudioEnabled = false;
   public boolean isInputEnabled = false;
@@ -13,6 +14,7 @@ public class Conf implements Parcelable {
   public Conf(){}
 
   private Conf(Parcel in) {
+    useADB = in.readByte() != 0;
     isSecure = in.readByte() != 0;
     isAudioEnabled = in.readByte() != 0;
     isInputEnabled = in.readByte() != 0;
@@ -38,6 +40,7 @@ public class Conf implements Parcelable {
 
   @Override
   public void writeToParcel(Parcel dest, int flags) {
+    dest.writeByte((byte) (useADB ? 1 : 0));
     dest.writeByte((byte) (isSecure ? 1 : 0));
     dest.writeByte((byte) (isAudioEnabled ? 1 : 0));
     dest.writeByte((byte) (isInputEnabled ? 1 : 0));
