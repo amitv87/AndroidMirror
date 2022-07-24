@@ -9,7 +9,7 @@ var opts = common.opts;
 var plugins = [
   new OptimizeCSSAssetsPlugin(),
   new CopyPlugin({ patterns: [
-    { from: './js/wasm', to: 'js/wasm' },
+    { from: './js/wasm', to: 'js/wasm', info: { minimized: true}, },
   ]}),
 ];
 
@@ -28,9 +28,12 @@ module.exports = merge(common.config, {
             properties: {
               reserved: [
                 'initVideo', 'y', 'u', 'v', 'stride', // wasm
-                'wsHost', 'p2p', 'token', 'wasm', 'offscreen', 'video', 'av', // hash params
+                'wsHost', 'p2p', 'token', 'wasm', 'offscreen', 'video', 'av', 'gl', // hash params
                 'srcObject', 'captureStream', 'transferControlToOffscreen', // wasm player
                 'fps', 'v', 'h', 'requestPictureInPicture', 'onleavepictureinpicture', // native video
+                'output', 'error', 'configure', 'decode', 'codec', 'type', 'data', 'timestamp', 'close',
+                'optimizeForLatency', 'hardwareAcceleration', 'codedWidth', 'codedHeight',
+                'numberOfFrames', 'sampleRate', 'planeIndex', 'allocationSize', 'copyTo', 'copyToChannel',
               ],
             },
           },

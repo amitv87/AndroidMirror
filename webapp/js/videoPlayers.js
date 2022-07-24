@@ -9,6 +9,7 @@ function getVid(){
   if(!video){
     video = document.createElement('video');
     // video.controls = true;
+    video.autoplay = true;
     video.style.width = '100%';
     videoCont.append(video);
     video.onleavepictureinpicture = () => setTimeout(video.play.bind(video), 1);
