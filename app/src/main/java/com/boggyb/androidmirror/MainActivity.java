@@ -206,9 +206,7 @@ public class MainActivity extends Activity implements Callbacks.ServiceClient{
       addOption(kAudioControlTitle, conf.isAudioEnabled, (buttonView, isChecked) -> conf.isAudioEnabled = isChecked);
     addOption(kADBControlTitle, conf.useADB, (buttonView, isChecked) -> conf.useADB = isChecked);
     addOption(kInputControlTitle, conf.isInputEnabled, (buttonView, isChecked) -> conf.isInputEnabled = isChecked);
-    /*
     addOption(kWebControlTitle, conf.isWebAccessEnabled, (buttonView, isChecked) -> conf.isWebAccessEnabled = isChecked);
-    */
     addOption(kSecureControlTitle, conf.isSecure, (buttonView, isChecked) -> conf.isSecure = isChecked).setOnLongClickListener(v -> {
       if(conf.isSecure) {
         getPrefs().edit().remove(kSecToken).apply();

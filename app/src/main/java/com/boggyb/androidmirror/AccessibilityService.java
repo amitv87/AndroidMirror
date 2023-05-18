@@ -1,12 +1,24 @@
 package com.boggyb.androidmirror;
 
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.GestureDescription;
+import android.accessibilityservice.InputMethod;
+
 import android.content.Context;
 import android.graphics.Path;
+
+
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.os.SystemClock;
+
 import android.util.Log;
+
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.inputmethod.EditorInfo;
 import android.view.accessibility.AccessibilityEvent;
 
 import java.util.HashMap;
@@ -17,6 +29,7 @@ import org.json.JSONTokener;
 public class AccessibilityService extends android.accessibilityservice.AccessibilityService {
   private static final String TAG = AccessibilityService.class.getCanonicalName();
 
+  private InputMethod im = null;
   private static final int kMaxTouchCount = 10;
   private static AccessibilityService instance = null;
 
@@ -70,6 +83,55 @@ public class AccessibilityService extends android.accessibilityservice.Accessibi
   public void onInterrupt() {
   }
 
+  @Override
+  public InputMethod onCreateInputMethod(){
+    if(im == null){
+      try{
+        im = new InputMethod(this);
+      }
+      catch(Exception e){
+        Log.e(TAG, "im ctor exception", e);
+      }
+    }
+    Log.d(TAG, "onCreateInputMethod: " + im);
+    return im;
+  }
+
+  private static void dispatchKey(final JSONArray arr) throws Exception{
+    Integer keyCode = arr.getInt(1);
+    if(keyCode >= KeyInputEvent.kAsciiNumStart && keyCode <= KeyInputEvent.kAsciiNumEnd) keyCode += (KeyEvent.KEYCODE_0 - KeyInputEvent.kAsciiNumStart);
+    else if(keyCode >= KeyInputEvent.kAsciiCharStart && keyCode <= KeyInputEvent.kAsciiCharEnd) keyCode += (KeyEvent.KEYCODE_A - KeyInputEvent.kAsciiCharStart);
+    else if((keyCode = KeyInputEvent.keyMap.get(keyCode)) == null) return;
+
+    sendKey(keyCode, arr.getInt(0),
+      (arr.getInt(2) == 1 ? KeyEvent.META_ALT_ON : 0)
+        | (arr.getInt(3) == 1 ? KeyEvent.META_SHIFT_ON : 0)
+        | (arr.getInt(4) == 1 ? KeyEvent.META_CTRL_ON : 0)
+    );
+  }
+
+  private static void sendButton(String action) throws Exception {
+    Integer keyCode = KeyInputEvent.buttonMap.get(action);
+    if(keyCode == null) return;
+    sendKey(keyCode, KeyEvent.ACTION_DOWN, 0);
+    sendKey(keyCode, KeyEvent.ACTION_UP, 0);
+  }
+
+  private static InputMethod.AccessibilityInputConnection mic = null;
+
+  private static void sendKey(int keyCode, int action, int meta) throws Exception {
+    if(instance.im == null) return;
+    InputMethod.AccessibilityInputConnection ic = instance.im.getCurrentInputConnection();
+    mic = ic != null ? ic : mic;
+    if(mic == null) return;
+
+    long now = SystemClock.uptimeMillis();
+    mic.sendKeyEvent(new KeyEvent(
+      now, now, action, keyCode, 0, meta, KeyInputEvent.deviceId, 0,
+      KeyEvent.FLAG_FROM_SYSTEM, InputDevice.SOURCE_KEYBOARD
+    ));
+  }
+
   public static void Process(AMService service, String str){
     if (str.length() == 0 || instance == null) return;
 
@@ -96,10 +158,12 @@ public class AccessibilityService extends android.accessibilityservice.Accessibi
             else{
               Integer global_action = buttonMap.get(button);
               if(global_action != null && global_action > 0) instance.performGlobalAction(global_action);
+              else sendButton(button);
             }
           }
         }
       }
+      else if (arr.length() == 5) dispatchKey(arr);
     }
     catch (Exception e){
       Log.e(TAG, "Process err", e);

@@ -374,7 +374,7 @@ public class AMService extends AppService implements RotationManager.Callback, D
       .setVisibility(Notification.VISIBILITY_PUBLIC)
       .setSmallIcon(R.drawable.ic_phonelink_white_24dp)
       .setContentIntent(PendingIntent.getActivity(this, (int) System.currentTimeMillis(),
-        new Intent(this, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT))
+        new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE))
     ;
 
     startForeground(1000, builder.build());

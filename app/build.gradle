@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 def enableSeparateBuildPerCPUArchitecture = System.env['POPTS_EXCLUDE'] == null && project.hasProperty('splitApk')
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 33
     buildToolsVersion "29.0.3"
 
     useLibrary 'org.apache.http.legacy'
@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId "com.boggyb.androidmirror"
         minSdkVersion 23
-        targetSdkVersion 29
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
     }

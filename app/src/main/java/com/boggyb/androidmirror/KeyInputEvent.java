@@ -10,9 +10,9 @@ import org.json.JSONArray;
 import java.util.HashMap;
 
 class KeyInputEvent {
-  private static final int deviceId = KeyCharacterMap.VIRTUAL_KEYBOARD;
+  public static final int deviceId = KeyCharacterMap.VIRTUAL_KEYBOARD;
 
-  private static final HashMap<String, Integer> buttonMap = new HashMap<String, Integer>(){{
+  public static final HashMap<String, Integer> buttonMap = new HashMap<String, Integer>(){{
     put("home", KeyEvent.KEYCODE_HOME);
     put("menu", KeyEvent.KEYCODE_MENU);
     put("back", KeyEvent.KEYCODE_BACK);
@@ -30,7 +30,7 @@ class KeyInputEvent {
     put("search", KeyEvent.KEYCODE_SEARCH);
   }};
 
-  private static final HashMap<Integer, Integer> keyMap = new HashMap<Integer, Integer>(){{
+  public static final HashMap<Integer, Integer> keyMap = new HashMap<Integer, Integer>(){{
     put(8, KeyEvent.KEYCODE_DEL);
     put(9, KeyEvent.KEYCODE_TAB);
     put(13, KeyEvent.KEYCODE_ENTER);
@@ -73,11 +73,11 @@ class KeyInputEvent {
     put(222, KeyEvent.KEYCODE_APOSTROPHE);
   }};
 
-  private static final int kAsciiNumStart = 48;
-  private static final int kAsciiNumEnd = 57;
+  public static final int kAsciiNumStart = 48;
+  public static final int kAsciiNumEnd = 57;
 
-  private static final int kAsciiCharStart = 65;
-  private static final int kAsciiCharEnd = 90;
+  public static final int kAsciiCharStart = 65;
+  public static final int kAsciiCharEnd = 90;
 
   static void Dispatch(final JSONArray arr) throws Exception{
     Integer keyCode = arr.getInt(1);
